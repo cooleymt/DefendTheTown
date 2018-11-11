@@ -58,6 +58,18 @@ var Skeleton = new Phaser.Class({
         this.attack = 1;
 
     },
+    startWalkin: function(){
+        this.setPosition(0,ScreenY-48);
+        this.hp = 10;
+    },
+    receiveDamage: function(damage){
+        this.hp -= damage;
+
+        if(this.hp<=0){
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    },
     update: function (time, delta){
         this.setPosition(this.x+this.speed, this.y);
         //console.log('Attacking is : ' + this.attacking);
@@ -78,6 +90,7 @@ var Arrow = new Phaser.Class({
         this.dx = 0;
         this.dy = 0;
         this.lifespan = 0;
+        this.attack = 5;
  
         this.speed = Phaser.Math.GetSpeed(600, 1);
     },
@@ -160,6 +173,7 @@ function create() {
 
     arrows = this.physics.add.group({classType: Arrow, runChildUpdate: true});
     this.input.on('pointerdown', FireArrow);
+    this.physics.add.overlap(skeletons, arrows, damageEnemy);
 }
  
 function update(time, delta) {
@@ -172,14 +186,21 @@ function update(time, delta) {
         var skeleton = skeletons.get();
         if (skeleton)
         {
-            
+            skeleton.startWalkin();
             skeleton.setActive(true);
             skeleton.setVisible(true);  
-            this.nextEnemy = time + 5000;
+            this.nextEnemy = time + 2000;
         }        
     }
     
     
+}
+function damageEnemy(enemy, arrow){
+    if(enemy.active === true && arrow.active === true){
+        arrow.setActive(false);
+        arrow.setVisible(false);
+        enemy.receiveDamage(arrow.attack);
+    }
 }
 
 function attackTown(skeleton, town){
