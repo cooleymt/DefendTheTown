@@ -20,7 +20,24 @@ var game = new Phaser.Game(config);
 var graphics;
 var cloudSpeed = .05;
 
- 
+
+var Town = new Phaser.Class({
+    Extends: Phaser.GameObjects.Image,
+    initialize:
+    function Town (scene)
+    {
+        Phaser.GameObjects.Image.call(this, scene, 0, 0, 'Town1');
+        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
+        this.hp = 100;
+        this.setPosition(ScreenX-64,ScreenY-96);
+    },
+    update: function (time, delta)
+    {
+
+    }
+});
+
+
 function preload() {
     
     //load skybox
@@ -30,6 +47,8 @@ function preload() {
     this.load.image('BGFront', 'assets/scenery/BGFront.png');
     this.load.image('Ground', 'assets/scenery/Ground');
     this.load.image('Grass', 'assets/scenery/Grass');
+
+    this.load.image('Town1', 'assets/Town/Town1');
 }
  
 function create() {
@@ -46,10 +65,17 @@ function create() {
     //create ground
     ground.create(ScreenX/2, ScreenY-16, 'Ground').setScale(2).refreshBody();
     this.add.image(ScreenX/3, ScreenY-32, 'Grass').setScale(2);
+
+    towns = this.physics.add.group({ classType: Town, runChildUpdate: true });
+    town = towns.get();
+    town.setActive(true);
+    town.setVisible(true);
 }
  
 function update(time, delta) {
     //scoot background PARALLAX!
     this.backClouds.tilePositionX += cloudSpeed;
     this.frontClouds.tilePositionX += cloudSpeed*2;
+
+    
 }
