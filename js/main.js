@@ -34,6 +34,10 @@ var Town = new Phaser.Class({
     takeDamage: function (damage){
         this.hp -= damage;
     },
+    fire: function(pointer){
+        var angle = Phaser.Math.Angle.Between(this.x, this.y, pointer.x, pointer.y);
+        addArrow(this.x, this.y, angle);
+    },
     update: function (time, delta)
     {
         //console.log(this.hp);
@@ -66,6 +70,42 @@ var Skeleton = new Phaser.Class({
     }
 });
 
+var Arrow = new Phaser.Class({
+    Extends: Phaser.GameObjects.Image,
+    initialize:
+    function Arrow (scene){
+        Phaser.GameObjects.Image.call(this, scene, 0,0, 'Arrow');
+        this.dx = 0;
+        this.dy = 0;
+        this.lifespan = 0;
+ 
+        this.speed = Phaser.Math.GetSpeed(600, 1);
+    },
+    fire: function(x,y,angle){
+        this.setActive(true);
+        this.setVisible(true);
+
+        this.setPosition(x,y);
+        this.setRotation(angle);
+        this.dx = Math.cos(angle);
+        this.dy = Math.sin(angle);
+ 
+        this.lifespan = 2000;
+    },
+    update: function (time, delta){
+        this.lifespan -= delta;
+ 
+        this.x += this.dx * (this.speed * delta);
+        this.y += this.dy * (this.speed * delta);
+ 
+        if (this.lifespan <= 0)
+        {
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    }
+});
+
 
 function preload() {
     
@@ -82,6 +122,9 @@ function preload() {
 
     //baddies
     this.load.spritesheet('skeletonWalk', 'assets/npcs/Skeleton/Skeleton Walk.png', { frameWidth: 22, frameHeight: 37 });
+
+    //things
+    this.load.image('Arrow', 'assets/arrow.png');
 }
  
 function create() {
@@ -111,8 +154,12 @@ function create() {
         frameRate: 10,
         repeat: -1
     });
+    
     this.nextEnemy = 0;
     this.physics.add.overlap(skeletons, towns, attackTown);
+
+    arrows = this.physics.add.group({classType: Arrow, runChildUpdate: true});
+    this.input.on('pointerdown', FireArrow);
 }
  
 function update(time, delta) {
@@ -125,6 +172,7 @@ function update(time, delta) {
         var skeleton = skeletons.get();
         if (skeleton)
         {
+            
             skeleton.setActive(true);
             skeleton.setVisible(true);  
             this.nextEnemy = time + 5000;
@@ -138,4 +186,15 @@ function attackTown(skeleton, town){
     skeleton.speed = 0;
     skeleton.attacking = true;
     skeleton.target = town;
+}
+
+function FireArrow(pointer){
+    town.fire(pointer);
+}
+
+function addArrow(x,y, angle){
+    var arrow = arrows.get();
+    if(arrow){
+        arrow.fire(x,y,angle);
+    }
 }
