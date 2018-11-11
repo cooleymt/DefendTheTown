@@ -24,16 +24,45 @@ var cloudSpeed = .05;
 var Town = new Phaser.Class({
     Extends: Phaser.GameObjects.Image,
     initialize:
+    
     function Town (scene)
     {
         Phaser.GameObjects.Image.call(this, scene, 0, 0, 'Town1');
-        this.follower = { t: 0, vec: new Phaser.Math.Vector2() };
         this.hp = 100;
         this.setPosition(ScreenX-64,ScreenY-96);
     },
+    takeDamage: function (damage){
+        this.hp -= damage;
+    },
     update: function (time, delta)
     {
+        //console.log(this.hp);
+    }
+});
 
+var Skeleton = new Phaser.Class({
+    Extends: Phaser.GameObjects.Image,
+    initialize:
+    function Skeleton (scene){
+        this.hp = 10;
+        Phaser.GameObjects.Image.call(this, scene, 0,0, 'skeletonWalk');
+        this.setPosition(0,ScreenY-48);
+        this.speed = 1;
+        this.attacking = false;
+        this.coolDown = 1000;
+        this.target = null;
+        this.attack = 1;
+
+    },
+    update: function (time, delta){
+        this.setPosition(this.x+this.speed, this.y);
+        //console.log('Attacking is : ' + this.attacking);
+        if(this.attacking && this.coolDown<=0){
+            this.target.takeDamage(this.attack);
+            this.coolDown = 1000;
+        }
+        this.coolDown -= 1;
+        //console.log('Cooldown is : ' + coolDown);
     }
 });
 
@@ -48,7 +77,11 @@ function preload() {
     this.load.image('Ground', 'assets/scenery/Ground');
     this.load.image('Grass', 'assets/scenery/Grass');
 
+    //buildings
     this.load.image('Town1', 'assets/Town/Town1');
+
+    //baddies
+    this.load.spritesheet('skeletonWalk', 'assets/npcs/Skeleton/Skeleton Walk.png', { frameWidth: 22, frameHeight: 37 });
 }
  
 function create() {
@@ -70,6 +103,16 @@ function create() {
     town = towns.get();
     town.setActive(true);
     town.setVisible(true);
+
+    skeletons = this.physics.add.group({classType:Skeleton, runChildUpdate:true})
+    this.anims.create({
+        key:'skeletonWalk',
+        frames: this.anims.generateFrameNumbers('skeletonWalk'),
+        frameRate: 10,
+        repeat: -1
+    });
+    this.nextEnemy = 0;
+    this.physics.add.overlap(skeletons, towns, attackTown);
 }
  
 function update(time, delta) {
@@ -77,5 +120,22 @@ function update(time, delta) {
     this.backClouds.tilePositionX += cloudSpeed;
     this.frontClouds.tilePositionX += cloudSpeed*2;
 
+    if (time > this.nextEnemy)
+    {        
+        var skeleton = skeletons.get();
+        if (skeleton)
+        {
+            skeleton.setActive(true);
+            skeleton.setVisible(true);  
+            this.nextEnemy = time + 5000;
+        }        
+    }
     
+    
+}
+
+function attackTown(skeleton, town){
+    skeleton.speed = 0;
+    skeleton.attacking = true;
+    skeleton.target = town;
 }
