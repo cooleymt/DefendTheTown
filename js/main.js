@@ -6,7 +6,11 @@ var config = {
     width: 1024,
     height: ScreenY,  
     physics:{
-        default: 'arcade'
+        default: 'arcade',
+        arcade: {
+            gravity: {y:300},
+            debug: false
+        }
     },
     scene: {
         key: 'main',
@@ -61,6 +65,7 @@ var Skeleton = new Phaser.Class({
     startWalkin: function(){
         this.setPosition(0,ScreenY-48);
         this.hp = 10;
+        this.speed = 1;
     },
     receiveDamage: function(damage){
         this.hp -= damage;
@@ -90,20 +95,23 @@ var Arrow = new Phaser.Class({
         this.dx = 0;
         this.dy = 0;
         this.lifespan = 0;
-        this.attack = 5;
- 
-        this.speed = Phaser.Math.GetSpeed(600, 1);
+        this.attack = 0;
+        this.speed = Phaser.Math.GetSpeed(800, 1);
+        
     },
     fire: function(x,y,angle){
-        this.setActive(true);
-        this.setVisible(true);
-
+        
+        this.attack = 5;
         this.setPosition(x,y);
         this.setRotation(angle);
+        this.speed = Phaser.Math.GetSpeed(800, 1);
         this.dx = Math.cos(angle);
         this.dy = Math.sin(angle);
- 
-        this.lifespan = 2000;
+        console.log(this.speed);
+        this.lifespan = 6000;
+
+        this.setActive(true);
+        this.setVisible(true);
     },
     update: function (time, delta){
         this.lifespan -= delta;
@@ -115,6 +123,7 @@ var Arrow = new Phaser.Class({
         {
             this.setActive(false);
             this.setVisible(false);
+            this.speed = 0;
         }
     }
 });
@@ -156,11 +165,13 @@ function create() {
     this.add.image(ScreenX/3, ScreenY-32, 'Grass').setScale(2);
 
     towns = this.physics.add.group({ classType: Town, runChildUpdate: true });
+    this.physics.add.collider(towns,ground);
     town = towns.get();
     town.setActive(true);
     town.setVisible(true);
 
     skeletons = this.physics.add.group({classType:Skeleton, runChildUpdate:true})
+    this.physics.add.collider(skeletons,ground);
     this.anims.create({
         key:'skeletonWalk',
         frames: this.anims.generateFrameNumbers('skeletonWalk'),
@@ -172,6 +183,8 @@ function create() {
     this.physics.add.overlap(skeletons, towns, attackTown);
 
     arrows = this.physics.add.group({classType: Arrow, runChildUpdate: true});
+    this.physics.add.overlap(arrows,ground, arrowGrounded);
+    this.physics.add.collider(arrows,ground);
     this.input.on('pointerdown', FireArrow);
     this.physics.add.overlap(skeletons, arrows, damageEnemy);
 }
@@ -199,7 +212,9 @@ function damageEnemy(enemy, arrow){
     if(enemy.active === true && arrow.active === true){
         arrow.setActive(false);
         arrow.setVisible(false);
+        arrow.speed = 0;
         enemy.receiveDamage(arrow.attack);
+        
     }
 }
 
@@ -218,4 +233,9 @@ function addArrow(x,y, angle){
     if(arrow){
         arrow.fire(x,y,angle);
     }
+}
+
+function arrowGrounded(arrow, ground){
+    arrow.speed = 0;
+    arrow.attack = 0;
 }
