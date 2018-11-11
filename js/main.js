@@ -89,10 +89,10 @@ var Skeleton = new Phaser.Class({
 });
 
 var Arrow = new Phaser.Class({
-    Extends: Phaser.GameObjects.Image,
+    Extends: Phaser.GameObjects.Sprite,
     initialize:
     function Arrow (scene){
-        Phaser.GameObjects.Image.call(this, scene, 0,0, 'Arrow');
+        Phaser.GameObjects.Sprite.call(this, scene, 0,0, 'Arrow');
         this.dx = 0;
         this.dy = 0;
         this.lifespan = 0;
@@ -108,7 +108,6 @@ var Arrow = new Phaser.Class({
         this.speed = Phaser.Math.GetSpeed(800, 1);
         this.dx = Math.cos(angle);
         this.dy = Math.sin(angle);
-        console.log(this.speed);
         this.lifespan = 6000;
 
         this.setActive(true);
@@ -122,10 +121,7 @@ var Arrow = new Phaser.Class({
  
         if (this.lifespan <= 0 || (this.x <=1 || this.x >= ScreenX))
         {
-            this.setActive(false);
-            this.setVisible(false);
-            this.body.newVelocty = 0;
-            this.speed = 0;
+            this.destroy();
         }
     }
 });
@@ -218,9 +214,7 @@ function update(time, delta) {
 }
 function damageEnemy(enemy, arrow){
     if(enemy.active === true && arrow.active === true){
-        arrow.setActive(false);
-        arrow.setVisible(false);
-        arrow.speed = 0;
+        arrow.destroy();
         enemy.receiveDamage(arrow.attack);
         
     }
