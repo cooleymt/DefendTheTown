@@ -49,11 +49,11 @@ var Town = new Phaser.Class({
 });
 
 var Skeleton = new Phaser.Class({
-    Extends: Phaser.GameObjects.Image,
+    Extends: Phaser.GameObjects.Sprite,
     initialize:
     function Skeleton (scene){
         this.hp = 10;
-        Phaser.GameObjects.Image.call(this, scene, 0,0, 'skeletonWalk');
+        Phaser.GameObjects.Sprite.call(this, scene, 0,0, 'skeletonWalk');
         this.setPosition(0,ScreenY-48);
         this.speed = 1;
         this.attacking = false;
@@ -66,6 +66,7 @@ var Skeleton = new Phaser.Class({
         this.setPosition(0,ScreenY-48);
         this.hp = 10;
         this.speed = 1;
+        this.anims.play('skeletonWalk',true);
     },
     receiveDamage: function(damage){
         this.hp -= damage;
@@ -119,10 +120,11 @@ var Arrow = new Phaser.Class({
         this.x += this.dx * (this.speed * delta);
         this.y += this.dy * (this.speed * delta);
  
-        if (this.lifespan <= 0)
+        if (this.lifespan <= 0 || (this.x <=1 || this.x >= ScreenX))
         {
             this.setActive(false);
             this.setVisible(false);
+            this.body.newVelocty = 0;
             this.speed = 0;
         }
     }
@@ -177,6 +179,12 @@ function create() {
         frames: this.anims.generateFrameNumbers('skeletonWalk'),
         frameRate: 10,
         repeat: -1
+    });
+    this.anims.create({
+        key:'skeletonAttack',
+        frames: this.anims.generateFrameNumbers('skeletonAttack'),
+        frameRate: 10,
+        repeat: 0
     });
     
     this.nextEnemy = 0;
