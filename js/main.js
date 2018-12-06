@@ -1,3 +1,4 @@
+//dug http://localhost:8080/DefendTheTown/
 var ScreenX = 1024;
 var ScreenY = 640;
 var config = {
@@ -23,7 +24,11 @@ var game = new Phaser.Game(config);
  
 var graphics;
 var cloudSpeed = .05;
-
+var score = 0;
+var scoreText;
+var healthText;
+var gameOverText;
+var timeToNext = 3000;
 
 var Town = new Phaser.Class({
     Extends: Phaser.GameObjects.Image,
@@ -37,6 +42,11 @@ var Town = new Phaser.Class({
     },
     takeDamage: function (damage){
         this.hp -= damage;
+        healthText.setText('town health: '+ this.hp);
+        if(this.hp <= 0){
+            game.scene.pause('main');
+            gameOverText.setText('GAME OVER');
+        }
     },
     fire: function(pointer){
         var angle = Phaser.Math.Angle.Between(this.x, this.y, pointer.x, pointer.y);
@@ -59,7 +69,7 @@ var Skeleton = new Phaser.Class({
         this.attacking = false;
         this.coolDown = 1000;
         this.target = null;
-        this.attack = 1;
+        this.attack = 3;
 
     },
     startWalkin: function(){
@@ -74,6 +84,8 @@ var Skeleton = new Phaser.Class({
         if(this.hp<=0){
             this.setActive(false);
             this.setVisible(false);
+            score += 10;
+            scoreText.setText('score: ' + score);
         }
     },
     update: function (time, delta){
@@ -162,6 +174,10 @@ function create() {
     ground.create(ScreenX/2, ScreenY-16, 'Ground').setScale(2).refreshBody();
     this.add.image(ScreenX/3, ScreenY-32, 'Grass').setScale(2);
 
+    //set score text
+    scoreText = this.add.text(16,16, 'score: 0', {fontSixe:'40px', fill:'#000'});
+    healthText = this.add.text(850,16, 'town health: 100', {fontSixe:'40px', fill:'#000'});
+    gameOverText = this.add.text(500,300, '', {fontSixe:'40px', fill:'#000'});
     towns = this.physics.add.group({ classType: Town, runChildUpdate: true });
     this.physics.add.collider(towns,ground);
     town = towns.get();
@@ -206,7 +222,12 @@ function update(time, delta) {
             skeleton.startWalkin();
             skeleton.setActive(true);
             skeleton.setVisible(true);  
-            this.nextEnemy = time + 2000;
+            this.nextEnemy = time + timeToNext;
+            timeToNext -= 20;
+            cloudSpeed += .004;
+            if(timeToNext < 100){
+                timeToNext = 100;
+            }
         }        
     }
     
